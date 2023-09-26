@@ -22,10 +22,10 @@ const cacheMap: Map<string, string> = new Map();
 let personID = 0;
 
 function showLoader() {
-document.getElementById("loader").style.display = "block"
+    document.getElementById("loader").style.display = "block"
 }
 function hideLoader() {
-document.getElementById("loader").style.display = "none"
+    document.getElementById("loader").style.display = "none"
 }
 async function getPeople() {
     let next: string | null = "https://swapi.dev/api/people";
@@ -34,16 +34,18 @@ async function getPeople() {
             if (next === null) {
                 break;
             }
-            console.log(next);
             const apiResponse = await fetch(next);
             if (!apiResponse.ok) {
                 throw new Error("Couldn't reach server");
             }
             const responseJSON = await apiResponse.json();
+            if (next === "https://swapi.dev/api/people") {
+                hideLoader();
+            }
             next = responseJSON["next"];
             addPeopletoList(responseJSON.results);
             peopleArray.push(...responseJSON.results);
-            hideLoader();
+
         }
     }
     catch (error) {
@@ -52,12 +54,6 @@ async function getPeople() {
 
 }
 getPeople();
-
-const films = [
-    "https://swapi.dev/api/films/1/",
-    "https://swapi.dev/api/films/2/",
-    "https://swapi.dev/api/films/3/"
-];
 
 function addPeopletoList(peopleArray: Array<Person>): void {
     const peopleListElement = document.getElementById("people-list");
@@ -75,8 +71,20 @@ function addPeopletoList(peopleArray: Array<Person>): void {
         personItem.appendChild(createGenderIcon(person.gender));
         peopleListElement.appendChild(personItem);
     });
-    
+
 }
+
+function hideLoaderIfListsAreFull() {
+    if (
+        document.getElementById("vehicle-list").innerHTML.length > 0 &&
+        document.getElementById("starship-list").innerHTML.length > 0 &&
+        document.getElementById("film-list").innerHTML.length > 0 &&
+        document.getElementById("homeworld-div").innerHTML.length > 0
+    ) {
+        hideLoader()
+    }
+}
+
 function getPersonData(personID: number) {
     showLoader();
     const person = peopleArray[personID];
@@ -92,7 +100,7 @@ function getPersonData(personID: number) {
         .then(response => response.json()
             .then(result => {
                 homeworldElement.textContent = result["name"];
-                hideLoader();
+                hideLoaderIfListsAreFull();
             }));
     fetchDataFromUrlArray(person.films, "title")
         .then(dataArray => {
@@ -120,13 +128,13 @@ function addToList(element: HTMLElement, array: Array<string>): void {
     element.innerHTML = "";
     if (array.length === 0) {
         array.push("none");
-        hideLoader();
     }
     array.forEach((value) => {
         let listItem = document.createElement("li");
         listItem.textContent = value;
         element.appendChild(listItem);
     });
+    hideLoaderIfListsAreFull();
 }
 
 function createEyeIcon(eyeColor: string): HTMLElement {

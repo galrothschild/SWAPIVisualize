@@ -15,16 +15,17 @@ async function getPeople() {
             if (next === null) {
                 break;
             }
-            console.log(next);
             const apiResponse = await fetch(next);
             if (!apiResponse.ok) {
                 throw new Error("Couldn't reach server");
             }
             const responseJSON = await apiResponse.json();
+            if (next === "https://swapi.dev/api/people") {
+                hideLoader();
+            }
             next = responseJSON["next"];
             addPeopletoList(responseJSON.results);
             peopleArray.push(...responseJSON.results);
-            hideLoader();
         }
     }
     catch (error) {
@@ -32,11 +33,6 @@ async function getPeople() {
     }
 }
 getPeople();
-const films = [
-    "https://swapi.dev/api/films/1/",
-    "https://swapi.dev/api/films/2/",
-    "https://swapi.dev/api/films/3/"
-];
 function addPeopletoList(peopleArray) {
     const peopleListElement = document.getElementById("people-list");
     peopleArray.forEach(person => {
@@ -53,6 +49,14 @@ function addPeopletoList(peopleArray) {
         peopleListElement.appendChild(personItem);
     });
 }
+function hideLoaderIfListsAreFull() {
+    if (document.getElementById("vehicle-list").innerHTML.length > 0 &&
+        document.getElementById("starship-list").innerHTML.length > 0 &&
+        document.getElementById("film-list").innerHTML.length > 0 &&
+        document.getElementById("homeworld-div").innerHTML.length > 0) {
+        hideLoader();
+    }
+}
 function getPersonData(personID) {
     showLoader();
     const person = peopleArray[personID];
@@ -68,7 +72,7 @@ function getPersonData(personID) {
         .then(response => response.json()
         .then(result => {
         homeworldElement.textContent = result["name"];
-        hideLoader();
+        hideLoaderIfListsAreFull();
     }));
     fetchDataFromUrlArray(person.films, "title")
         .then(dataArray => {
@@ -95,13 +99,13 @@ function addToList(element, array) {
     element.innerHTML = "";
     if (array.length === 0) {
         array.push("none");
-        hideLoader();
     }
     array.forEach((value) => {
         let listItem = document.createElement("li");
         listItem.textContent = value;
         element.appendChild(listItem);
     });
+    hideLoaderIfListsAreFull();
 }
 function createEyeIcon(eyeColor) {
     const eyeIcon = document.createElement('span');
