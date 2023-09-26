@@ -20,6 +20,13 @@ const genderMap: Map<string, string> = new Map([["male", "👨🏻"], ["female",
 const peopleArray: Array<Person> = [];
 const cacheMap: Map<string, string> = new Map();
 let personID = 0;
+
+function showLoader() {
+document.getElementById("loader").style.display = "block"
+}
+function hideLoader() {
+document.getElementById("loader").style.display = "none"
+}
 async function getPeople() {
     let next: string | null = "https://swapi.dev/api/people";
     try {
@@ -36,6 +43,7 @@ async function getPeople() {
             next = responseJSON["next"];
             addPeopletoList(responseJSON.results);
             peopleArray.push(...responseJSON.results);
+            hideLoader();
         }
     }
     catch (error) {
@@ -67,8 +75,10 @@ function addPeopletoList(peopleArray: Array<Person>): void {
         personItem.appendChild(createGenderIcon(person.gender));
         peopleListElement.appendChild(personItem);
     });
+    
 }
 function getPersonData(personID: number) {
+    showLoader();
     const person = peopleArray[personID];
     const vehiclesElement = document.getElementById("vehicle-list");
     const starshipsElement = document.getElementById("starship-list");
@@ -82,6 +92,7 @@ function getPersonData(personID: number) {
         .then(response => response.json()
             .then(result => {
                 homeworldElement.textContent = result["name"];
+                hideLoader();
             }));
     fetchDataFromUrlArray(person.films, "title")
         .then(dataArray => {
@@ -106,8 +117,10 @@ async function fetchDataFromUrlArray(urls: string[], property: string): Promise<
 }
 
 function addToList(element: HTMLElement, array: Array<string>): void {
+    element.innerHTML = "";
     if (array.length === 0) {
         array.push("none");
+        hideLoader();
     }
     array.forEach((value) => {
         let listItem = document.createElement("li");
