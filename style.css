@@ -1,0 +1,93 @@
+:root {
+    --dark-blue: hsl(220, 13%, 18%);
+    --light-blue: hsl(221, 43%, 51%);
+
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    color: #fff;
+    text-align: center;
+    font-family: sans-serif;
+}
+
+.container {
+    display: grid;
+    grid-template-areas:
+        "people vehicles starships films"
+        "people homeworld homeworld homeworld";
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 5fr 1fr;
+    gap: 10px;
+    height: 100vh;
+    background-color: var(--light-blue);
+    padding: 10px;
+}
+
+.container>div {
+    background-color: var(--dark-blue);
+    padding-top: 20px;
+}
+
+.container>div>ul {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    color: hsl(0, 0%, 93%);
+}
+
+.container>div>ul>li {
+    line-height: 1.5rem;
+    border: 2px solid var(--light-blue);
+    background-color: var(--dark-blue);
+    width: 90%;
+    list-style: none;
+    cursor: pointer;
+    border-radius: 7px;
+}
+
+.container>div>ul>li>span {
+    margin-left: 5px;
+}
+
+.container>div>ul>li:where(:hover, :active) {
+    filter: brightness(1.5);
+}
+
+h2 {
+    font-size: 3rem;
+    line-height: 4rem;
+}
+
+.people {
+    grid-area: people;
+    overflow-y: auto;
+}
+
+.vehicles {
+    grid-area: vehicles;
+}
+
+.starships {
+    grid-area: starships;
+}
+
+.films {
+    grid-area: films;
+}
+
+.homeworld {
+    grid-area: homeworld;
+}
+
+.homeworld-div {
+    font-size: 2rem;
+    line-height: 3rem;
+}
