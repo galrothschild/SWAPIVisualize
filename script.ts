@@ -96,12 +96,17 @@ function getPersonData(personID: number) {
     starshipsElement.innerHTML = "";
     filmsElement.innerHTML = "";
     homeworldElement.innerHTML = "";
-    fetch(person["homeworld"])
-        .then(response => response.json()
-            .then(result => {
-                homeworldElement.textContent = result["name"];
-                hideLoaderIfListsAreFull();
-            }));
+    if (cacheMap.has(person["homeworld"])) {
+        homeworldElement.textContent = cacheMap.get(person["homeworld"]);
+    } else {
+        fetch(person["homeworld"])
+            .then(response => response.json()
+                .then(result => {
+                    homeworldElement.textContent = result["name"];
+                    hideLoaderIfListsAreFull();
+                    cacheMap.set(person["homeworld"], result["name"]);
+                }));
+    }
     fetchDataFromUrlArray(person.films, "title")
         .then(dataArray => {
             addToList(filmsElement, dataArray);
@@ -119,8 +124,12 @@ function getPersonData(personID: number) {
         .catch(error => console.error(error));
 }
 async function fetchDataFromUrlArray(urls: string[], property: string): Promise<any[]> {
-    const promises = urls.map(url => fetch(url).then(response => response.json().then(result => result[property])));
+    const promises = urls.map(url => fetch(url).then(response => response.json().then(result => result[property])).catch(error => {
+        console.error(error);
+        hideLoader();
+    }));
     const data = await Promise.all(promises);
+    console.log(data);
     return data;
 }
 
