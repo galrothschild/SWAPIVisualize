@@ -18,7 +18,7 @@ interface Person {
 }
 const genderMap: Map<string, string> = new Map([["male", "👨🏻"], ["female", "👱🏻‍♀️"], ["n/a", "🤖"], ["none", "🤖"]]);
 const peopleArray: Array<Person> = [];
-const cacheMap: Map<string, string> = new Map();
+let cacheMap: Map<string, string> = new Map();
 let personID = 0;
 
 function showLoader() {
@@ -27,11 +27,24 @@ function showLoader() {
 function hideLoader() {
     document.getElementById("loader").style.display = "none"
 }
+
+function loadCacheMap() {
+    if (localStorage.getItem("cacheMap") === null) {
+        updateCacheMap()
+    } else {
+        cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")))
+    }
+}
+loadCacheMap()
+function updateCacheMap() {
+    localStorage.setItem("cacheMap", JSON.stringify([...cacheMap.entries()]))
+}
 async function getPeople() {
     let next: string | null = "https://swapi.dev/api/people";
     try {
         while (true) {
             if (next === null) {
+                hideLoader();
                 break;
             }
             const apiResponse = await fetch(next);
@@ -39,9 +52,6 @@ async function getPeople() {
                 throw new Error("Couldn't reach server");
             }
             const responseJSON = await apiResponse.json();
-            if (next === "https://swapi.dev/api/people") {
-                hideLoader();
-            }
             next = responseJSON["next"];
             addPeopletoList(responseJSON.results);
             peopleArray.push(...responseJSON.results);
@@ -62,8 +72,10 @@ function addPeopletoList(peopleArray: Array<Person>): void {
         let personItem = document.createElement("li");
         personItem.setAttribute("data-id", `${personID}`);
         personItem.addEventListener("click", evt => {
-            let element = evt.currentTarget as HTMLElement;
-            getPersonData(element.attributes["data-id"].value);
+            if (document.getElementById("loader").style.display === "none") {
+                let element = evt.currentTarget as HTMLElement;
+                getPersonData(element.attributes["data-id"].value);
+            }
         });
         personID++;
         personItem.innerText = `${person.name} `;
@@ -105,6 +117,7 @@ function getPersonData(personID: number) {
                     homeworldElement.textContent = result["name"];
                     hideLoaderIfListsAreFull();
                     cacheMap.set(person["homeworld"], result["name"]);
+                    updateCacheMap()
                 }));
     }
     fetchDataFromUrlArray(person.films, "title")
@@ -124,12 +137,21 @@ function getPersonData(personID: number) {
         .catch(error => console.error(error));
 }
 async function fetchDataFromUrlArray(urls: string[], property: string): Promise<any[]> {
-    const promises = urls.map(url => fetch(url).then(response => response.json().then(result => result[property])).catch(error => {
-        console.error(error);
-        hideLoader();
-    }));
+    const promises = urls.map(url => {
+        if (cacheMap.has(url)) {
+            return cacheMap.get(url)
+        } else {
+            return fetch(url).then(response => response.json().then(result => {
+                cacheMap.set(result["url"], result[property])
+                updateCacheMap()
+                return result[property]
+            })).catch(error => {
+                console.error(error);
+                hideLoader();
+            })
+        }
+    });
     const data = await Promise.all(promises);
-    console.log(data);
     return data;
 }
 

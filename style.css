@@ -49,15 +49,19 @@ body {
     background-color: var(--dark-blue);
     width: 90%;
     list-style: none;
-    cursor: pointer;
     border-radius: 7px;
+    cursor: default;
+}
+
+.container>div>.people-list>li {
+    cursor: pointer;
 }
 
 .container>div>ul>li>span {
     margin-left: 5px;
 }
 
-.container>div>ul>li:where(:hover, :active) {
+.container>div>.people-list>li:where(:hover, :active) {
     filter: brightness(1.5);
 }
 
