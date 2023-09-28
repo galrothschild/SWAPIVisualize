@@ -1,6 +1,6 @@
 const genderMap = new Map([["male", "👨🏻"], ["female", "👱🏻‍♀️"], ["n/a", "🤖"], ["none", "🤖"]]);
 const peopleArray = [];
-const cacheMap = new Map();
+let cacheMap = new Map();
 let personID = 0;
 function showLoader() {
     document.getElementById("loader").style.display = "block";
@@ -8,11 +8,21 @@ function showLoader() {
 function hideLoader() {
     document.getElementById("loader").style.display = "none";
 }
+function updateCacheMap() {
+    localStorage.setItem("cacheMap", JSON.stringify([...cacheMap.entries()]));
+}
+if (localStorage.getItem("cacheMap") === null) {
+    updateCacheMap();
+}
+else {
+    cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")));
+}
 async function getPeople() {
     let next = "https://swapi.dev/api/people";
     try {
         while (true) {
             if (next === null) {
+                hideLoader();
                 break;
             }
             const apiResponse = await fetch(next);
@@ -20,9 +30,6 @@ async function getPeople() {
                 throw new Error("Couldn't reach server");
             }
             const responseJSON = await apiResponse.json();
-            if (next === "https://swapi.dev/api/people") {
-                hideLoader();
-            }
             next = responseJSON["next"];
             addPeopletoList(responseJSON.results);
             peopleArray.push(...responseJSON.results);
@@ -39,8 +46,10 @@ function addPeopletoList(peopleArray) {
         let personItem = document.createElement("li");
         personItem.setAttribute("data-id", `${personID}`);
         personItem.addEventListener("click", evt => {
-            let element = evt.currentTarget;
-            getPersonData(element.attributes["data-id"].value);
+            if (document.getElementById("loader").style.display === "none") {
+                let element = evt.currentTarget;
+                getPersonData(element.attributes["data-id"].value);
+            }
         });
         personID++;
         personItem.innerText = `${person.name} `;
@@ -78,6 +87,7 @@ function getPersonData(personID) {
             homeworldElement.textContent = result["name"];
             hideLoaderIfListsAreFull();
             cacheMap.set(person["homeworld"], result["name"]);
+            updateCacheMap();
         }));
     }
     fetchDataFromUrlArray(person.films, "title")

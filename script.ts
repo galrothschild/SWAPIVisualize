@@ -18,20 +18,30 @@ interface Person {
 }
 const genderMap: Map<string, string> = new Map([["male", "👨🏻"], ["female", "👱🏻‍♀️"], ["n/a", "🤖"], ["none", "🤖"]]);
 const peopleArray: Array<Person> = [];
-const cacheMap: Map<string, string> = new Map();
+let cacheMap: Map<string, string> = new Map();
 let personID = 0;
 
 function showLoader() {
-    document.getElementById("loader").style.display = "block"
+    document.getElementById("loader").style.display = "block";
 }
 function hideLoader() {
-    document.getElementById("loader").style.display = "none"
+    document.getElementById("loader").style.display = "none";
+}
+
+function updateCacheMap() {
+    localStorage.setItem("cacheMap", JSON.stringify([...cacheMap.entries()]));
+}
+if (localStorage.getItem("cacheMap") === null) {
+    updateCacheMap();
+} else {
+    cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")));
 }
 async function getPeople() {
     let next: string | null = "https://swapi.dev/api/people";
     try {
         while (true) {
             if (next === null) {
+                hideLoader();
                 break;
             }
             const apiResponse = await fetch(next);
@@ -39,9 +49,6 @@ async function getPeople() {
                 throw new Error("Couldn't reach server");
             }
             const responseJSON = await apiResponse.json();
-            if (next === "https://swapi.dev/api/people") {
-                hideLoader();
-            }
             next = responseJSON["next"];
             addPeopletoList(responseJSON.results);
             peopleArray.push(...responseJSON.results);
@@ -62,8 +69,10 @@ function addPeopletoList(peopleArray: Array<Person>): void {
         let personItem = document.createElement("li");
         personItem.setAttribute("data-id", `${personID}`);
         personItem.addEventListener("click", evt => {
-            let element = evt.currentTarget as HTMLElement;
-            getPersonData(element.attributes["data-id"].value);
+            if (document.getElementById("loader").style.display === "none") {
+                let element = evt.currentTarget as HTMLElement;
+                getPersonData(element.attributes["data-id"].value);
+            }
         });
         personID++;
         personItem.innerText = `${person.name} `;
@@ -81,7 +90,7 @@ function hideLoaderIfListsAreFull() {
         document.getElementById("film-list").innerHTML.length > 0 &&
         document.getElementById("homeworld-div").innerHTML.length > 0
     ) {
-        hideLoader()
+        hideLoader();
     }
 }
 
@@ -105,6 +114,7 @@ function getPersonData(personID: number) {
                     homeworldElement.textContent = result["name"];
                     hideLoaderIfListsAreFull();
                     cacheMap.set(person["homeworld"], result["name"]);
+                    updateCacheMap();
                 }));
     }
     fetchDataFromUrlArray(person.films, "title")
