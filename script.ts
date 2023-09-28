@@ -22,23 +22,21 @@ let cacheMap: Map<string, string> = new Map();
 let personID = 0;
 
 function showLoader() {
-    document.getElementById("loader").style.display = "block"
+    document.getElementById("loader").style.display = "block";
 }
 function hideLoader() {
-    document.getElementById("loader").style.display = "none"
+    document.getElementById("loader").style.display = "none";
 }
 
-function loadCacheMap() {
-    if (localStorage.getItem("cacheMap") === null) {
-        updateCacheMap()
-    } else {
-        cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")))
-    }
-}
-loadCacheMap()
 function updateCacheMap() {
-    localStorage.setItem("cacheMap", JSON.stringify([...cacheMap.entries()]))
+    localStorage.setItem("cacheMap", JSON.stringify([...cacheMap.entries()]));
 }
+if (localStorage.getItem("cacheMap") === null) {
+    updateCacheMap();
+} else {
+    cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")));
+}
+
 async function getPeople() {
     let next: string | null = "https://swapi.dev/api/people";
     try {
@@ -93,7 +91,7 @@ function hideLoaderIfListsAreFull() {
         document.getElementById("film-list").innerHTML.length > 0 &&
         document.getElementById("homeworld-div").innerHTML.length > 0
     ) {
-        hideLoader()
+        hideLoader();
     }
 }
 
@@ -117,7 +115,6 @@ function getPersonData(personID: number) {
                     homeworldElement.textContent = result["name"];
                     hideLoaderIfListsAreFull();
                     cacheMap.set(person["homeworld"], result["name"]);
-                    updateCacheMap()
                 }));
     }
     fetchDataFromUrlArray(person.films, "title")

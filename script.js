@@ -8,17 +8,14 @@ function showLoader() {
 function hideLoader() {
     document.getElementById("loader").style.display = "none";
 }
-function loadCacheMap() {
-    if (localStorage.getItem("cacheMap") === null) {
-        updateCacheMap();
-    }
-    else {
-        cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")));
-    }
-}
-loadCacheMap();
 function updateCacheMap() {
     localStorage.setItem("cacheMap", JSON.stringify([...cacheMap.entries()]));
+}
+if (localStorage.getItem("cacheMap") === null) {
+    updateCacheMap();
+}
+else {
+    cacheMap = new Map(JSON.parse(localStorage.getItem("cacheMap")));
 }
 async function getPeople() {
     let next = "https://swapi.dev/api/people";
@@ -90,7 +87,6 @@ function getPersonData(personID) {
             homeworldElement.textContent = result["name"];
             hideLoaderIfListsAreFull();
             cacheMap.set(person["homeworld"], result["name"]);
-            updateCacheMap();
         }));
     }
     fetchDataFromUrlArray(person.films, "title")
